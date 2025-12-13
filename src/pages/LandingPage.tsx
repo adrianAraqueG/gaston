@@ -99,7 +99,7 @@ export function LandingPage() {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Bolsillos</h3>
             <p className="text-gray-600 text-sm sm:text-base">
-              Organiza tu dinero en bolsillos. Asigna gastos a diferentes bolsillos para mejor control.
+              Dile al bot de dónde sacaste el dinero para pagar el gasto.
             </p>
           </div>
 
