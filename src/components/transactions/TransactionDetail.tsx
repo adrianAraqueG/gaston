@@ -24,9 +24,9 @@ function getTransactionStyles(type: 'expense' | 'income') {
     };
   }
   return {
-    amountColor: 'text-indigo-600',
+    amountColor: 'text-violet-600',
     title: 'Detalles del Gasto',
-    buttonColor: 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500',
+    buttonColor: 'bg-violet-600 hover:bg-violet-700 focus:ring-violet-500',
   };
 }
 

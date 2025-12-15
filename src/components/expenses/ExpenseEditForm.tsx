@@ -74,7 +74,7 @@ export function ExpenseEditForm({ expense, onClose, onSave }: ExpenseEditFormPro
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
               />
             </div>
 
@@ -88,7 +88,7 @@ export function ExpenseEditForm({ expense, onClose, onSave }: ExpenseEditFormPro
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
               />
             </div>
 
@@ -102,7 +102,7 @@ export function ExpenseEditForm({ expense, onClose, onSave }: ExpenseEditFormPro
                 value={occurredAt}
                 onChange={(e) => setOccurredAt(e.target.value)}
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
               />
             </div>
 
@@ -116,7 +116,7 @@ export function ExpenseEditForm({ expense, onClose, onSave }: ExpenseEditFormPro
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Guardando...' : 'Guardar'}
               </button>

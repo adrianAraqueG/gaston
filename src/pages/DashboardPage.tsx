@@ -37,10 +37,10 @@ export function DashboardPage() {
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-2">
-                <FaMoneyBillWave className="h-5 w-5 text-indigo-600" />
+                <FaMoneyBillWave className="h-5 w-5 text-violet-600" />
                 <div className="text-sm font-medium text-gray-500">Total Gastos</div>
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-indigo-600">
+              <div className="text-xl sm:text-2xl font-bold text-violet-600">
                 {formatCurrency(totalExpenses)}
               </div>
             </div>
@@ -104,7 +104,7 @@ export function DashboardPage() {
         {!loading && !error && expenses.length > 0 && (
           <div>
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <FaMoneyBillWave className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+              <FaMoneyBillWave className="h-5 w-5 sm:h-6 sm:w-6 text-violet-600" />
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Gastos</h2>
               <span className="text-xs sm:text-sm text-gray-500">({expenses.length})</span>
             </div>

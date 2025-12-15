@@ -21,8 +21,8 @@ function getTransactionStyles(type: 'expense' | 'income') {
   }
   return {
     title: 'Editar Gasto',
-    buttonColor: 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500',
-    focusColor: 'focus:ring-indigo-500 focus:border-indigo-500',
+    buttonColor: 'bg-violet-600 hover:bg-violet-700 focus:ring-violet-500',
+    focusColor: 'focus:ring-violet-500 focus:border-violet-500',
   };
 }
 

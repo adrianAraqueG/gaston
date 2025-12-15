@@ -53,7 +53,7 @@ export function ExpenseDetail({ expense, onClose, onEdit, onDelete }: ExpenseDet
               
               <div className="border-b border-gray-200 pb-4">
                 <label className="text-sm font-medium text-gray-500">Monto</label>
-                <p className="mt-1 text-2xl font-bold text-indigo-600">
+                <p className="mt-1 text-2xl font-bold text-violet-600">
                   {formatCurrency(expense.amount)}
                 </p>
               </div>
@@ -99,7 +99,7 @@ export function ExpenseDetail({ expense, onClose, onEdit, onDelete }: ExpenseDet
             <div className="mt-6 flex gap-3">
               <button
                 onClick={onEdit}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
               >
                 Editar
               </button>

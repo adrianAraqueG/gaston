@@ -7,7 +7,7 @@ export function Header() {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16">
-          <h1 className="text-lg sm:text-xl font-semibold text-indigo-600">Gastón</h1>
+          <h1 className="text-lg sm:text-xl font-semibold text-violet-600">Gastón</h1>
           <div className="flex items-center gap-2 sm:gap-4">
             <span className="text-xs sm:text-sm text-gray-700 hidden sm:inline">Hola, {user?.name}</span>
             <button
