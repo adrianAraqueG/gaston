@@ -1,15 +1,32 @@
+import { useState } from 'react';
 import { useTransactions } from '../hooks/useTransactions';
 import { TransactionCard } from '../components/transactions/TransactionCard';
 import { Header } from '../components/layout/Header';
 import { formatCurrency } from '../utils/formatters';
-import { FaArrowUp, FaMoneyBillWave, FaChartBar } from 'react-icons/fa';
+import { transactionsService } from '../services/transactions.service';
+import { FaArrowUp, FaMoneyBillWave, FaChartBar, FaFileExcel } from 'react-icons/fa';
 
 export function DashboardPage() {
   const { expenses, incomes, loading, error, refresh } = useTransactions();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalIncomes = incomes.reduce((sum, i) => sum + i.amount, 0);
   const balance = totalIncomes - totalExpenses;
+
+  const handleExport = async () => {
+    setExporting(true);
+    setExportError(null);
+    try {
+      await transactionsService.exportToExcel();
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Error al exportar a Excel');
+      console.error('Error exporting:', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -17,10 +34,27 @@ export function DashboardPage() {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Mis Transacciones</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Gestiona y revisa todos tus gastos e ingresos
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Mis Transacciones</h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Gestiona y revisa todos tus gastos e ingresos
+              </p>
+            </div>
+            <button
+              onClick={handleExport}
+              disabled={exporting || (expenses.length === 0 && incomes.length === 0)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              <FaFileExcel className="h-5 w-5" />
+              <span>{exporting ? 'Exportando...' : 'Exportar a Excel'}</span>
+            </button>
+          </div>
+          {exportError && (
+            <div className="mt-4 rounded-md bg-red-50 p-3">
+              <div className="text-sm text-red-800">{exportError}</div>
+            </div>
+          )}
         </div>
 
         {/* Resumen */}
