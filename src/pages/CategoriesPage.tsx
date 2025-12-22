@@ -12,9 +12,9 @@ export function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
-  const handleCreate = async (data: CreateCategoryDto) => {
+  const handleCreate = async (data: CreateCategoryDto | UpdateCategoryDto) => {
     try {
-      await categoriesService.create(data);
+      await categoriesService.create(data as CreateCategoryDto);
       refresh();
       setShowCreateForm(false);
     } catch (err: any) {
@@ -202,7 +202,7 @@ export function CategoriesPage() {
 interface CategoryFormProps {
   category?: Category;
   onClose: () => void;
-  onSave: (data: CreateCategoryDto | UpdateCategoryDto) => void;
+  onSave: (data: CreateCategoryDto | UpdateCategoryDto) => Promise<void>;
 }
 
 function CategoryForm({ category, onClose, onSave }: CategoryFormProps) {

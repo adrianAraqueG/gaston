@@ -11,9 +11,9 @@ export function PocketsPage() {
   const [editingPocket, setEditingPocket] = useState<Pocket | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
-  const handleCreate = async (data: CreatePocketDto) => {
+  const handleCreate = async (data: CreatePocketDto | UpdatePocketDto) => {
     try {
-      await pocketsService.create(data);
+      await pocketsService.create(data as CreatePocketDto);
       refresh();
       setShowCreateForm(false);
     } catch (err: any) {
@@ -155,7 +155,7 @@ export function PocketsPage() {
 interface PocketFormProps {
   pocket?: Pocket;
   onClose: () => void;
-  onSave: (data: CreatePocketDto | UpdatePocketDto) => void;
+  onSave: (data: CreatePocketDto | UpdatePocketDto) => Promise<void>;
 }
 
 function PocketForm({ pocket, onClose, onSave }: PocketFormProps) {
