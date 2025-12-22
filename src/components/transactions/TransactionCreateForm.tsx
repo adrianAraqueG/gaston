@@ -1,47 +1,43 @@
 import { useState } from 'react';
-import type { Transaction, UpdateTransactionDto } from '../../types/transaction.types';
 import { transactionsService } from '../../services/transactions.service';
+import type { CreateTransactionDto } from '../../types/transaction.types';
 import { validateAmount } from '../../utils/validators';
-import { isIncome } from '../../types/transaction.types';
 import { useCategories } from '../../hooks/useCategories';
 import { usePockets } from '../../hooks/usePockets';
 
-interface TransactionEditFormProps {
-  transaction: Transaction;
+interface TransactionCreateFormProps {
   onClose: () => void;
   onSave: () => void;
+  defaultType?: 'expense' | 'income';
 }
 
-// Helper para obtener estilos según el tipo
-function getTransactionStyles(type: 'expense' | 'income') {
-  if (isIncome({ type } as Transaction)) {
-    return {
-      title: 'Editar Ingreso',
-      buttonColor: 'bg-secondary-600 hover:bg-secondary-700 focus:ring-secondary-500',
-      focusColor: 'focus:ring-secondary-500 focus:border-secondary-500',
-    };
-  }
-  return {
-    title: 'Editar Gasto',
-    buttonColor: 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500',
-    focusColor: 'focus:ring-primary-500 focus:border-primary-500',
-  };
-}
-
-export function TransactionEditForm({ transaction, onClose, onSave }: TransactionEditFormProps) {
-  const [amount, setAmount] = useState(transaction.amount.toString());
-  const [description, setDescription] = useState(transaction.description);
-  const [categoryId, setCategoryId] = useState<number | undefined>(transaction.category?.id);
-  const [pocketId, setPocketId] = useState<number | null | undefined>(transaction.pocket?.id ?? null);
+export function TransactionCreateForm({ onClose, onSave, defaultType = 'expense' }: TransactionCreateFormProps) {
+  const [type, setType] = useState<'expense' | 'income'>(defaultType);
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [pocketId, setPocketId] = useState<number | null | undefined>(undefined);
   const [occurredAt, setOccurredAt] = useState(
-    new Date(transaction.occurredAt).toISOString().slice(0, 16)
+    new Date().toISOString().slice(0, 16)
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const styles = getTransactionStyles(transaction.type);
-  
-  const { categories, loading: categoriesLoading } = useCategories(transaction.type);
+
+  const { categories, loading: categoriesLoading } = useCategories(type);
   const { pockets, loading: pocketsLoading } = usePockets();
+
+  const isExpense = type === 'expense';
+  const styles = isExpense
+    ? {
+        title: 'Crear Gasto',
+        buttonColor: 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500',
+        focusColor: 'focus:ring-primary-500 focus:border-primary-500',
+      }
+    : {
+        title: 'Crear Ingreso',
+        buttonColor: 'bg-secondary-600 hover:bg-secondary-700 focus:ring-secondary-500',
+        focusColor: 'focus:ring-secondary-500 focus:border-secondary-500',
+      };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,20 +51,24 @@ export function TransactionEditForm({ transaction, onClose, onSave }: Transactio
       return;
     }
 
-    const updateData: UpdateTransactionDto = {
+    const createData: CreateTransactionDto = {
+      type,
       amount: amountNum,
       description,
       categoryId,
-      pocketId: isIncome(transaction) ? null : (pocketId ?? null),
+      pocketId: isExpense ? (pocketId ?? null) : null,
       occurredAt: new Date(occurredAt).toISOString(),
     };
 
     try {
-      await transactionsService.update(transaction.id, updateData);
+      await transactionsService.create(createData);
       onSave();
       onClose();
     } catch (err: any) {
-      setError(err.message || `Error al actualizar ${transaction.type === 'income' ? 'ingreso' : 'gasto'}`);
+      const errorMessage = err.message || err.statusCode 
+        ? (typeof err.message === 'string' ? err.message : Array.isArray(err.message) ? err.message.join(', ') : 'Error al crear transacción')
+        : 'Error al crear transacción';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -90,6 +90,28 @@ export function TransactionEditForm({ transaction, onClose, onSave }: Transactio
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+                Tipo
+              </label>
+              <select
+                id="type"
+                value={type}
+                onChange={(e) => {
+                  setType(e.target.value as 'expense' | 'income');
+                  setCategoryId(undefined);
+                  if (e.target.value === 'income') {
+                    setPocketId(null);
+                  }
+                }}
+                required
+                className={`mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${styles.focusColor} text-base sm:text-sm`}
+              >
+                <option value="expense">Gasto</option>
+                <option value="income">Ingreso</option>
+              </select>
+            </div>
+
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
                 Monto
@@ -131,16 +153,16 @@ export function TransactionEditForm({ transaction, onClose, onSave }: Transactio
                 className={`mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${styles.focusColor} text-base sm:text-sm`}
               >
                 <option value="">Sin categoría</option>
-                {categories.filter(cat => cat.type === transaction.type).map(cat => (
+                {categories.filter(cat => cat.type === type).map(cat => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
-              {!categoriesLoading && categories.filter(cat => cat.type === transaction.type).length === 0 && (
+              {!categoriesLoading && categories.filter(cat => cat.type === type).length === 0 && (
                 <p className="mt-1 text-sm text-gray-500">No hay categorías de este tipo disponibles</p>
               )}
             </div>
 
-            {!isIncome(transaction) && (
+            {isExpense && (
               <div>
                 <label htmlFor="pocketId" className="block text-sm font-medium text-gray-700">
                   Bolsillo {pocketsLoading && '(Cargando...)'}
@@ -185,7 +207,7 @@ export function TransactionEditForm({ transaction, onClose, onSave }: Transactio
                 disabled={loading}
                 className={`flex-1 px-4 py-3 sm:py-2 text-sm font-medium text-white ${styles.buttonColor} rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
               >
-                {loading ? 'Guardando...' : 'Guardar'}
+                {loading ? 'Creando...' : 'Crear'}
               </button>
               <button
                 type="button"

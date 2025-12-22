@@ -1,6 +1,6 @@
 import { apiRequest } from './api';
 import { API_BASE_URL } from './api';
-import type { Transaction, Expense, Income, UpdateTransactionDto } from '../types/transaction.types';
+import type { Transaction, Expense, Income, CreateTransactionDto, UpdateTransactionDto } from '../types/transaction.types';
 
 export const transactionsService = {
   /**
@@ -22,6 +22,16 @@ export const transactionsService = {
    */
   async getById(id: number): Promise<Transaction> {
     return apiRequest<Transaction>(`/transactions/${id}`);
+  },
+
+  /**
+   * Crea una nueva transacción
+   */
+  async create(data: CreateTransactionDto): Promise<Transaction> {
+    return apiRequest<Transaction>('/transactions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 
   /**

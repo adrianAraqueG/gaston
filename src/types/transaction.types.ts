@@ -32,6 +32,15 @@ export interface Income extends Transaction {
   type: 'income';
 }
 
+export interface CreateTransactionDto {
+  type: 'expense' | 'income';
+  amount: number;
+  description: string;
+  categoryId?: number;
+  pocketId?: number | null;
+  occurredAt?: string;
+}
+
 export interface UpdateTransactionDto {
   amount?: number;
   description?: string;

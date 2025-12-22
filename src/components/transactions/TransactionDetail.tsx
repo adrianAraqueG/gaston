@@ -18,15 +18,15 @@ interface TransactionDetailProps {
 function getTransactionStyles(type: 'expense' | 'income') {
   if (isIncome({ type } as Transaction)) {
     return {
-      amountColor: 'text-green-600',
+      amountColor: 'text-secondary-600',
       title: 'Detalles del Ingreso',
-      buttonColor: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
+      buttonColor: 'bg-secondary-600 hover:bg-secondary-700 focus:ring-secondary-500',
     };
   }
   return {
-    amountColor: 'text-violet-600',
+    amountColor: 'text-primary-600',
     title: 'Detalles del Gasto',
-    buttonColor: 'bg-violet-600 hover:bg-violet-700 focus:ring-violet-500',
+    buttonColor: 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500',
   };
 }
 

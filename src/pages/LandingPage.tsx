@@ -15,7 +15,7 @@ export function LandingPage() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-20 pb-8 sm:pb-12">
         <div className="text-center">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-violet-600 mb-4">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-primary-600 mb-4">
             Gastón
           </h1>
           <p className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 mb-4">
@@ -28,7 +28,7 @@ export function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/login"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 sm:py-3 text-base sm:text-sm font-medium rounded-md text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 sm:py-3 text-base sm:text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
             >
               Iniciar Sesión
               <FaArrowRight className="h-4 w-4" />
@@ -45,8 +45,8 @@ export function LandingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 text-center">
             <div className="flex justify-center mb-4">
-              <div className="bg-violet-100 rounded-full p-4">
-                <FaWhatsapp className="h-8 w-8 text-violet-600" />
+              <div className="bg-primary-100 rounded-full p-4">
+                <FaWhatsapp className="h-8 w-8 text-primary-600" />
               </div>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">WhatsApp</h3>
@@ -57,8 +57,8 @@ export function LandingPage() {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 text-center">
             <div className="flex justify-center mb-4">
-              <div className="bg-green-100 rounded-full p-4">
-                <FaMoneyBillWave className="h-8 w-8 text-green-600" />
+              <div className="bg-secondary-100 rounded-full p-4">
+                <FaMoneyBillWave className="h-8 w-8 text-secondary-600" />
               </div>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Gastos e Ingresos</h3>
@@ -126,7 +126,7 @@ export function LandingPage() {
           <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8">
             <div className="flex gap-4 sm:gap-6">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 text-white rounded-full font-bold text-lg sm:text-xl">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 text-white rounded-full font-bold text-lg sm:text-xl">
                   1
                 </div>
               </div>
@@ -142,7 +142,7 @@ export function LandingPage() {
 
             <div className="flex gap-4 sm:gap-6">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 text-white rounded-full font-bold text-lg sm:text-xl">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 text-white rounded-full font-bold text-lg sm:text-xl">
                   2
                 </div>
               </div>
@@ -158,7 +158,7 @@ export function LandingPage() {
 
             <div className="flex gap-4 sm:gap-6">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 text-white rounded-full font-bold text-lg sm:text-xl">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 text-white rounded-full font-bold text-lg sm:text-xl">
                   3
                 </div>
               </div>
@@ -177,16 +177,16 @@ export function LandingPage() {
 
       {/* CTA Final */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="bg-violet-600 rounded-lg shadow-lg p-8 sm:p-12 text-center">
+        <div className="bg-primary-600 rounded-lg shadow-lg p-8 sm:p-12 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
             ¿Listo para empezar?
           </h2>
-          <p className="text-violet-100 mb-6 sm:mb-8 text-base sm:text-lg">
+          <p className="text-primary-100 mb-6 sm:mb-8 text-base sm:text-lg">
             Inicia sesión o regístrate desde WhatsApp para comenzar a gestionar tus finanzas.
           </p>
           <Link
             to="/login"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base sm:text-sm font-medium rounded-md text-violet-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base sm:text-sm font-medium rounded-md text-primary-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors"
           >
             Iniciar Sesión
             <FaArrowRight className="h-4 w-4" />

@@ -20,7 +20,7 @@ export function ExpenseCard({ expense, onUpdate }: ExpenseCardProps) {
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
             {expense.description}
           </h3>
-          <p className="text-2xl font-bold text-violet-600 mb-2">
+          <p className="text-2xl font-bold text-primary-600 mb-2">
             {formatCurrency(expense.amount)}
           </p>
           <div className="flex flex-wrap gap-2 text-sm text-gray-600">
@@ -40,13 +40,13 @@ export function ExpenseCard({ expense, onUpdate }: ExpenseCardProps) {
         <div className="mt-4 flex gap-2">
           <button
             onClick={() => setShowDetail(true)}
-            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             Ver Detalles
           </button>
           <button
             onClick={() => setShowEdit(true)}
-            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             Editar
           </button>

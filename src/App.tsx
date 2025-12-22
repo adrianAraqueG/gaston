@@ -4,6 +4,8 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { CategoriesPage } from './pages/CategoriesPage';
+import { PocketsPage } from './pages/PocketsPage';
 import { LandingPage } from './pages/LandingPage';
 
 function AppRoutes() {
@@ -37,6 +39,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categories"
+        element={
+          <ProtectedRoute>
+            <CategoriesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pockets"
+        element={
+          <ProtectedRoute>
+            <PocketsPage />
           </ProtectedRoute>
         }
       />

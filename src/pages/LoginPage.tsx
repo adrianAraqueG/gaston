@@ -39,7 +39,7 @@ export function LoginPage() {
       {/* Botón de volver atrás */}
       <button
         onClick={() => navigate('/')}
-        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-200 z-10"
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 z-10"
         aria-label="Volver atrás"
       >
         <FaArrowLeft className="h-4 w-4" />
@@ -49,7 +49,7 @@ export function LoginPage() {
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 sm:p-10 space-y-6">
           <div className="text-center">
-            <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-violet-600 to-violet-700 bg-clip-text text-transparent mb-3">
+            <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-3">
               Gastón
             </h1>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-4">
@@ -78,7 +78,7 @@ export function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl placeholder-gray-400 text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 focus:bg-white transition-all duration-200 text-base sm:text-sm shadow-sm hover:border-gray-300"
+                    className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl placeholder-gray-400 text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-all duration-200 text-base sm:text-sm shadow-sm hover:border-gray-300"
                     placeholder="tu@email.com"
                   />
                 </div>
@@ -100,7 +100,7 @@ export function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl placeholder-gray-400 text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 focus:bg-white transition-all duration-200 text-base sm:text-sm shadow-sm hover:border-gray-300"
+                    className="block w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl placeholder-gray-400 text-gray-900 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-all duration-200 text-base sm:text-sm shadow-sm hover:border-gray-300"
                     placeholder="••••••••"
                   />
                 </div>
@@ -117,7 +117,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent text-base sm:text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
+                className="group relative w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent text-base sm:text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
               >
                 <FaSignInAlt className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}

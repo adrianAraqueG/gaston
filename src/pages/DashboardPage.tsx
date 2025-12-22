@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useTransactions } from '../hooks/useTransactions';
 import { TransactionCard } from '../components/transactions/TransactionCard';
+import { TransactionCreateForm } from '../components/transactions/TransactionCreateForm';
 import { Header } from '../components/layout/Header';
 import { formatCurrency } from '../utils/formatters';
 import { transactionsService } from '../services/transactions.service';
-import { FaArrowUp, FaMoneyBillWave, FaChartBar, FaFileExcel } from 'react-icons/fa';
+import { FaArrowUp, FaMoneyBillWave, FaChartBar, FaFileExcel, FaPlus } from 'react-icons/fa';
 
 export function DashboardPage() {
   const { expenses, incomes, loading, error, refresh } = useTransactions();
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalIncomes = incomes.reduce((sum, i) => sum + i.amount, 0);
@@ -41,14 +43,23 @@ export function DashboardPage() {
                 Gestiona y revisa todos tus gastos e ingresos
               </p>
             </div>
-            <button
-              onClick={handleExport}
-              disabled={exporting || (expenses.length === 0 && incomes.length === 0)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              <FaFileExcel className="h-5 w-5" />
-              <span>{exporting ? 'Exportando...' : 'Exportar a Excel'}</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                <FaPlus className="h-5 w-5" />
+                <span>Nueva Transacción</span>
+              </button>
+              <button
+                onClick={handleExport}
+                disabled={exporting || (expenses.length === 0 && incomes.length === 0)}
+                className="flex items-center gap-2 px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                <FaFileExcel className="h-5 w-5" />
+                <span>{exporting ? 'Exportando...' : 'Exportar a Excel'}</span>
+              </button>
+            </div>
           </div>
           {exportError && (
             <div className="mt-4 rounded-md bg-red-50 p-3">
@@ -62,28 +73,28 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 sm:mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-2">
-                <FaArrowUp className="h-5 w-5 text-green-600" />
+                <FaArrowUp className="h-5 w-5 text-secondary-600" />
                 <div className="text-sm font-medium text-gray-500">Total Ingresos</div>
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-green-600">
+              <div className="text-xl sm:text-2xl font-bold text-secondary-600">
                 {formatCurrency(totalIncomes)}
               </div>
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-2">
-                <FaMoneyBillWave className="h-5 w-5 text-violet-600" />
+                <FaMoneyBillWave className="h-5 w-5 text-primary-600" />
                 <div className="text-sm font-medium text-gray-500">Total Gastos</div>
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-violet-600">
+              <div className="text-xl sm:text-2xl font-bold text-primary-600">
                 {formatCurrency(totalExpenses)}
               </div>
             </div>
-            <div className={`bg-white rounded-lg shadow-sm border-2 p-4 sm:p-5 ${balance >= 0 ? 'border-green-200' : 'border-red-200'}`}>
+            <div className={`bg-white rounded-lg shadow-sm border-2 p-4 sm:p-5 ${balance >= 0 ? 'border-secondary-200' : 'border-red-200'}`}>
               <div className="flex items-center gap-2 mb-2">
-                <FaChartBar className={`h-5 w-5 ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                <FaChartBar className={`h-5 w-5 ${balance >= 0 ? 'text-secondary-600' : 'text-red-600'}`} />
                 <div className="text-sm font-medium text-gray-500">Balance</div>
               </div>
-              <div className={`text-xl sm:text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`text-xl sm:text-2xl font-bold ${balance >= 0 ? 'text-secondary-600' : 'text-red-600'}`}>
                 {formatCurrency(balance)}
               </div>
             </div>
@@ -118,7 +129,7 @@ export function DashboardPage() {
         {!loading && !error && incomes.length > 0 && (
           <div className="mb-6 sm:mb-8">
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <FaArrowUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+              <FaArrowUp className="h-5 w-5 sm:h-6 sm:w-6 text-secondary-600" />
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Ingresos</h2>
               <span className="text-xs sm:text-sm text-gray-500">({incomes.length})</span>
             </div>
@@ -138,7 +149,7 @@ export function DashboardPage() {
         {!loading && !error && expenses.length > 0 && (
           <div>
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <FaMoneyBillWave className="h-5 w-5 sm:h-6 sm:w-6 text-violet-600" />
+              <FaMoneyBillWave className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Gastos</h2>
               <span className="text-xs sm:text-sm text-gray-500">({expenses.length})</span>
             </div>
@@ -152,6 +163,13 @@ export function DashboardPage() {
               ))}
             </div>
           </div>
+        )}
+
+        {showCreateForm && (
+          <TransactionCreateForm
+            onClose={() => setShowCreateForm(false)}
+            onSave={refresh}
+          />
         )}
       </main>
     </div>
