@@ -88,7 +88,7 @@ export function CategoriesPage() {
               onClick={() => setType('expense')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 type === 'expense'
-                  ? 'bg-primary-600 text-white'
+                  ? 'bg-expense-600 text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -138,7 +138,7 @@ export function CategoriesPage() {
                     <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
                     <span className={`inline-block mt-1 px-2 py-1 text-xs font-medium rounded ${
                       category.type === 'expense'
-                        ? 'bg-primary-100 text-primary-700'
+                        ? 'bg-expense-100 text-expense-700'
                         : 'bg-secondary-100 text-secondary-700'
                     }`}>
                       {category.type === 'expense' ? 'Gasto' : 'Ingreso'}
