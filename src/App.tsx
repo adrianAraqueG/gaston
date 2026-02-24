@@ -6,7 +6,6 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { PocketsPage } from './pages/PocketsPage';
-import { LandingPage } from './pages/LandingPage';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -21,7 +20,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
       <Route
         path="/login"
         element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
@@ -58,6 +57,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
     </Routes>
   );
 }
