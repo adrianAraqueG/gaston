@@ -1,6 +1,9 @@
+﻿
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTransactions } from '../hooks/useTransactions';
+import { useFixedExpenses } from '../hooks/useFixedExpenses';
+import { useCategories } from '../hooks/useCategories';
 import { TransactionCreateForm } from '../components/transactions/TransactionCreateForm';
 import { TransactionDetail } from '../components/transactions/TransactionDetail';
 import { TransactionEditForm } from '../components/transactions/TransactionEditForm';
@@ -8,9 +11,17 @@ import { Header } from '../components/layout/Header';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { transactionsService } from '../services/transactions.service';
 import type { Transaction } from '../types/transaction.types';
+import type {
+  CreateFixedExpenseDto,
+  FixedExpense,
+  PayFixedExpenseDto,
+  UpdateFixedExpenseDto,
+} from '../types/fixed-expense.types';
+import type { Category } from '../types/category.types';
+import { validateAmount } from '../utils/validators';
 import {
-  FaArrowTrendUp,
   FaArrowTrendDown,
+  FaArrowTrendUp,
   FaChartLine,
   FaFileExcel,
   FaPlus,
@@ -32,8 +43,40 @@ const monthOptions = [
   { value: 12, label: 'Diciembre' },
 ];
 
+function getApiErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+  if (err && typeof err === 'object' && 'message' in err) {
+    const message = (err as { message?: string | string[] }).message;
+    if (typeof message === 'string') {
+      return message;
+    }
+    if (Array.isArray(message) && message.length > 0) {
+      return message.join(', ');
+    }
+  }
+  return fallback;
+}
+
+function getLocalDateTimeInputValue(date = new Date()): string {
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 export function DashboardPage() {
   const { expenses, incomes, loading, error, refresh } = useTransactions();
+  const {
+    fixedExpenses,
+    loading: fixedExpensesLoading,
+    error: fixedExpensesError,
+    createFixedExpense,
+    updateFixedExpense,
+    removeFixedExpense,
+    payFixedExpense,
+  } = useFixedExpenses();
+  const { categories: expenseCategories } = useCategories('expense');
+
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
@@ -46,8 +89,20 @@ export function DashboardPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
+  const [showFixedExpenseCreate, setShowFixedExpenseCreate] = useState(false);
+  const [editingFixedExpense, setEditingFixedExpense] = useState<FixedExpense | null>(null);
+  const [payingFixedExpense, setPayingFixedExpense] = useState<FixedExpense | null>(null);
+  const [deletingFixedExpense, setDeletingFixedExpense] = useState<FixedExpense | null>(null);
+  const [fixedExpenseSaving, setFixedExpenseSaving] = useState(false);
+  const [fixedExpensePaying, setFixedExpensePaying] = useState(false);
+  const [fixedExpenseError, setFixedExpenseError] = useState<string | null>(null);
+  const [fixedExpensePayError, setFixedExpensePayError] = useState<string | null>(null);
+
   const allTransactions = useMemo(
-    () => [...expenses, ...incomes].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()),
+    () =>
+      [...expenses, ...incomes].sort(
+        (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
+      ),
     [expenses, incomes],
   );
 
@@ -64,6 +119,22 @@ export function DashboardPage() {
   const filteredExpenses = useMemo(
     () => filteredTransactions.filter((tx) => tx.type === 'expense'),
     [filteredTransactions],
+  );
+
+  const paidFixedExpenseIdsThisMonth = useMemo(
+    () =>
+      new Set(
+        expenses
+          .filter(
+            (tx) =>
+              tx.year === selectedYear &&
+              tx.month === selectedMonth &&
+              tx.type === 'expense' &&
+              tx.fixedExpenseId !== undefined,
+          )
+          .map((tx) => tx.fixedExpenseId as number),
+      ),
+    [expenses, selectedYear, selectedMonth],
   );
 
   const totalIncomes = filteredIncomes.reduce((sum, tx) => sum + tx.amount, 0);
@@ -99,6 +170,59 @@ export function DashboardPage() {
     }
   };
 
+  const handleCreateOrUpdateFixedExpense = async (
+    data: CreateFixedExpenseDto | UpdateFixedExpenseDto,
+  ) => {
+    try {
+      setFixedExpenseSaving(true);
+      setFixedExpenseError(null);
+
+      if (editingFixedExpense) {
+        await updateFixedExpense(editingFixedExpense.id, data as UpdateFixedExpenseDto);
+      } else {
+        await createFixedExpense(data as CreateFixedExpenseDto);
+      }
+
+      setShowFixedExpenseCreate(false);
+      setEditingFixedExpense(null);
+    } catch (err) {
+      setFixedExpenseError(getApiErrorMessage(err, 'Error al guardar gasto fijo'));
+    } finally {
+      setFixedExpenseSaving(false);
+    }
+  };
+
+  const handlePayFixedExpense = async (data: PayFixedExpenseDto) => {
+    if (!payingFixedExpense) {
+      return;
+    }
+
+    try {
+      setFixedExpensePaying(true);
+      setFixedExpensePayError(null);
+      await payFixedExpense(payingFixedExpense.id, data);
+      await refresh();
+      setPayingFixedExpense(null);
+    } catch (err) {
+      setFixedExpensePayError(getApiErrorMessage(err, 'Error al pagar gasto fijo'));
+    } finally {
+      setFixedExpensePaying(false);
+    }
+  };
+
+  const handleDeleteFixedExpense = async () => {
+    if (!deletingFixedExpense) {
+      return;
+    }
+
+    try {
+      await removeFixedExpense(deletingFixedExpense.id);
+      setDeletingFixedExpense(null);
+    } catch (err) {
+      alert(getApiErrorMessage(err, 'Error al eliminar gasto fijo'));
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -107,9 +231,13 @@ export function DashboardPage() {
         <section className="surface-card-elevated p-5 sm:p-6">
           <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5">
             <div className="space-y-1">
-              <p className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-primary-700">Resumen mensual</p>
+              <p className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-primary-700">
+                Resumen mensual
+              </p>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Dashboard financiero</h1>
-              <p className="text-sm text-slate-600">Controla tus ingresos y gastos por periodo con enfoque operativo.</p>
+              <p className="text-sm text-slate-600">
+                Controla tus ingresos y gastos por periodo con enfoque operativo.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full xl:w-auto xl:min-w-[420px]">
@@ -167,6 +295,115 @@ export function DashboardPage() {
           )}
         </section>
 
+        <section className="surface-card-elevated overflow-hidden">
+          <div className="px-4 sm:px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">Gastos fijos</h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Registra y paga gastos recurrentes con un click.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setEditingFixedExpense(null);
+                setFixedExpenseError(null);
+                setShowFixedExpenseCreate(true);
+              }}
+              className="btn-primary w-full sm:w-auto"
+            >
+              <FaPlus className="h-4 w-4" />
+              Nuevo gasto fijo
+            </button>
+          </div>
+
+          {fixedExpensesLoading && (
+            <div className="p-6 text-sm text-slate-600">Cargando gastos fijos...</div>
+          )}
+
+          {fixedExpensesError && (
+            <div className="p-4 text-sm font-medium border-t border-expense-100 bg-expense-50 text-expense-700">
+              Error: {fixedExpensesError}
+            </div>
+          )}
+
+          {!fixedExpensesLoading && !fixedExpensesError && fixedExpenses.length === 0 && (
+            <div className="p-6 text-sm text-slate-600">
+              Aun no tienes gastos fijos. Crea uno para habilitar el pago rapido.
+            </div>
+          )}
+
+          {!fixedExpensesLoading && !fixedExpensesError && fixedExpenses.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600">Nombre</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600">Categoria</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600">Monto por defecto</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600">Estado</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/80">
+                  {fixedExpenses.map((fixedExpense) => {
+                    const isPaidThisMonth = paidFixedExpenseIdsThisMonth.has(fixedExpense.id);
+                    return (
+                    <tr key={fixedExpense.id} className="hover:bg-slate-50/90 transition-colors">
+                      <td className="px-4 py-3 text-slate-900 font-medium">{fixedExpense.name}</td>
+                      <td className="px-4 py-3 text-slate-700">
+                        {fixedExpense.category?.name || 'Sin categoria'}
+                      </td>
+                      <td className="px-4 py-3 text-right text-slate-900 font-semibold">
+                        {formatCurrency(fixedExpense.defaultAmount)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`status-chip ${
+                            isPaidThisMonth
+                              ? 'bg-secondary-100 text-secondary-700'
+                              : 'bg-warning-100 text-warning-700'
+                          }`}
+                        >
+                          {isPaidThisMonth ? 'Pagado' : 'Pendiente'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="inline-flex gap-2">
+                          <button
+                            onClick={() => {
+                              setFixedExpensePayError(null);
+                              setPayingFixedExpense(fixedExpense);
+                            }}
+                            disabled={isPaidThisMonth}
+                            className="btn-success min-h-10 px-3 disabled:opacity-50"
+                          >
+                            Pagar
+                          </button>
+                          <button
+                            onClick={() => {
+                              setFixedExpenseError(null);
+                              setEditingFixedExpense(fixedExpense);
+                            }}
+                            className="btn-ghost min-h-10 px-3"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => setDeletingFixedExpense(fixedExpense)}
+                            className="btn-danger min-h-10 px-3"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
         {loading && (
           <section className="surface-card p-8 text-center">
             <p className="text-slate-600">Cargando transacciones...</p>
@@ -195,7 +432,11 @@ export function DashboardPage() {
                 valueClassName="text-expense-700"
               />
               <SummaryCard
-                icon={<FaChartLine className={`h-4 w-4 ${balance >= 0 ? 'text-primary-700' : 'text-expense-700'}`} />}
+                icon={
+                  <FaChartLine
+                    className={`h-4 w-4 ${balance >= 0 ? 'text-primary-700' : 'text-expense-700'}`}
+                  />
+                }
                 label="Balance"
                 value={formatCurrency(balance)}
                 valueClassName={balance >= 0 ? 'text-primary-700' : 'text-expense-700'}
@@ -212,7 +453,9 @@ export function DashboardPage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900">Charts - {periodLabel}</h2>
-                  <p className="text-sm text-slate-600 mt-1">Comparativo visual de ingresos y gastos del periodo.</p>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Comparativo visual de ingresos y gastos del periodo.
+                  </p>
                 </div>
               </div>
 
@@ -232,7 +475,13 @@ export function DashboardPage() {
                   />
                   <div className="pt-2 text-xs sm:text-sm text-slate-600">
                     <span className="font-semibold text-slate-900">Lectura:</span> el balance actual es{' '}
-                    <span className={balance >= 0 ? 'text-secondary-700 font-semibold' : 'text-expense-700 font-semibold'}>
+                    <span
+                      className={
+                        balance >= 0
+                          ? 'text-secondary-700 font-semibold'
+                          : 'text-expense-700 font-semibold'
+                      }
+                    >
                       {formatCurrency(balance)}
                     </span>
                     .
@@ -273,7 +522,9 @@ export function DashboardPage() {
                     <FaTable className="h-6 w-6" />
                   </div>
                   <p className="text-base font-semibold text-slate-900">No hay transacciones en este periodo.</p>
-                  <p className="text-sm text-slate-600 mt-1">Cambia mes/anio o registra una nueva transaccion.</p>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Cambia mes/anio o registra una nueva transaccion.
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -360,11 +611,47 @@ export function DashboardPage() {
             }}
           />
         )}
+
+        {(showFixedExpenseCreate || editingFixedExpense) && (
+          <FixedExpenseFormModal
+            fixedExpense={editingFixedExpense}
+            categories={expenseCategories}
+            loading={fixedExpenseSaving}
+            error={fixedExpenseError}
+            onClose={() => {
+              setShowFixedExpenseCreate(false);
+              setEditingFixedExpense(null);
+              setFixedExpenseError(null);
+            }}
+            onSave={handleCreateOrUpdateFixedExpense}
+          />
+        )}
+
+        {payingFixedExpense && (
+          <PayFixedExpenseModal
+            fixedExpense={payingFixedExpense}
+            loading={fixedExpensePaying}
+            error={fixedExpensePayError}
+            onClose={() => {
+              setPayingFixedExpense(null);
+              setFixedExpensePayError(null);
+            }}
+            onPay={handlePayFixedExpense}
+          />
+        )}
+
+        {deletingFixedExpense && (
+          <DeleteConfirmModal
+            title="Eliminar gasto fijo"
+            message={`Se desactivara "${deletingFixedExpense.name}". Podras recrearlo despues con el mismo nombre.`}
+            onCancel={() => setDeletingFixedExpense(null)}
+            onConfirm={handleDeleteFixedExpense}
+          />
+        )}
       </main>
     </div>
   );
 }
-
 interface SummaryCardProps {
   icon: ReactNode;
   label: string;
@@ -399,7 +686,253 @@ function ChartRow({ label, value, percent, barClass }: ChartRowProps) {
         <span className="font-bold text-slate-900">{formatCurrency(value)}</span>
       </div>
       <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
-        <div className={`h-full rounded-full ${barClass}`} style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
+        <div
+          className={`h-full rounded-full ${barClass}`}
+          style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+interface FixedExpenseFormModalProps {
+  fixedExpense: FixedExpense | null;
+  categories: Category[];
+  loading: boolean;
+  error: string | null;
+  onClose: () => void;
+  onSave: (data: CreateFixedExpenseDto | UpdateFixedExpenseDto) => Promise<void>;
+}
+
+function FixedExpenseFormModal({
+  fixedExpense,
+  categories,
+  loading,
+  error,
+  onClose,
+  onSave,
+}: FixedExpenseFormModalProps) {
+  const [name, setName] = useState(fixedExpense?.name || '');
+  const [defaultAmount, setDefaultAmount] = useState(fixedExpense?.defaultAmount.toString() || '');
+  const [categoryId, setCategoryId] = useState<number | undefined>(fixedExpense?.category?.id);
+  const [localError, setLocalError] = useState<string>('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError('');
+
+    if (!name.trim()) {
+      setLocalError('El nombre es requerido');
+      return;
+    }
+
+    const amountNum = parseFloat(defaultAmount);
+    if (!validateAmount(amountNum)) {
+      setLocalError('El monto por defecto debe ser mayor que 0');
+      return;
+    }
+
+    await onSave({
+      name: name.trim(),
+      defaultAmount: amountNum,
+      categoryId,
+    });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-slate-950/45 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div className="surface-card-elevated w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-xl font-bold text-slate-900">
+          {fixedExpense ? 'Editar gasto fijo' : 'Nuevo gasto fijo'}
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+          <div>
+            <label htmlFor="fixed-expense-name" className="label">
+              Nombre
+            </label>
+            <input
+              id="fixed-expense-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="field"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="fixed-expense-default-amount" className="label">
+              Monto por defecto
+            </label>
+            <input
+              id="fixed-expense-default-amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={defaultAmount}
+              onChange={(e) => setDefaultAmount(e.target.value)}
+              required
+              className="field"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="fixed-expense-category" className="label">
+              Categoria
+            </label>
+            <select
+              id="fixed-expense-category"
+              value={categoryId || ''}
+              onChange={(e) => setCategoryId(e.target.value ? parseInt(e.target.value, 10) : undefined)}
+              className="field"
+            >
+              <option value="">Sin categoria</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {(localError || error) && (
+            <div className="rounded-xl border border-expense-100 bg-expense-50 p-3 text-sm font-medium text-expense-700">
+              {localError || error}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <button type="submit" disabled={loading} className="btn-primary flex-1">
+              {loading ? 'Guardando...' : 'Guardar'}
+            </button>
+            <button type="button" onClick={onClose} className="btn-ghost flex-1">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+interface PayFixedExpenseModalProps {
+  fixedExpense: FixedExpense;
+  loading: boolean;
+  error: string | null;
+  onClose: () => void;
+  onPay: (data: PayFixedExpenseDto) => Promise<void>;
+}
+
+function PayFixedExpenseModal({ fixedExpense, loading, error, onClose, onPay }: PayFixedExpenseModalProps) {
+  const [amount, setAmount] = useState(fixedExpense.defaultAmount.toString());
+  const [occurredAt, setOccurredAt] = useState(getLocalDateTimeInputValue());
+  const [localError, setLocalError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError('');
+
+    const amountNum = parseFloat(amount);
+    if (!validateAmount(amountNum)) {
+      setLocalError('El monto debe ser mayor que 0');
+      return;
+    }
+
+    await onPay({
+      amount: amountNum,
+      occurredAt: new Date(occurredAt).toISOString(),
+    });
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-slate-950/45 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div className="surface-card-elevated w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-xl font-bold text-slate-900">Pagar gasto fijo</h2>
+        <p className="text-sm text-slate-600 mt-1">
+          Confirma los valores para registrar el pago de <span className="font-semibold">{fixedExpense.name}</span>.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-5">
+          <div>
+            <label htmlFor="pay-fixed-expense-amount" className="label">
+              Monto
+            </label>
+            <input
+              id="pay-fixed-expense-amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="field"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="pay-fixed-expense-date" className="label">
+              Fecha
+            </label>
+            <input
+              id="pay-fixed-expense-date"
+              type="datetime-local"
+              value={occurredAt}
+              onChange={(e) => setOccurredAt(e.target.value)}
+              className="field"
+              required
+            />
+          </div>
+
+          {(localError || error) && (
+            <div className="rounded-xl border border-expense-100 bg-expense-50 p-3 text-sm font-medium text-expense-700">
+              {localError || error}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <button type="submit" disabled={loading} className="btn-success flex-1">
+              {loading ? 'Pagando...' : 'Confirmar pago'}
+            </button>
+            <button type="button" onClick={onClose} className="btn-ghost flex-1">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface DeleteConfirmModalProps {
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function DeleteConfirmModal({ title, message, onConfirm, onCancel }: DeleteConfirmModalProps) {
+  return (
+    <div
+      className="fixed inset-0 bg-slate-950/45 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onCancel}
+    >
+      <div className="surface-card-elevated w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+        <p className="mt-3 text-sm text-slate-600">{message}</p>
+        <div className="flex flex-col sm:flex-row gap-2 mt-6">
+          <button onClick={onConfirm} className="btn-danger flex-1">
+            Eliminar
+          </button>
+          <button onClick={onCancel} className="btn-ghost flex-1">
+            Cancelar
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -143,6 +143,19 @@
     --tw-ring-color: rgb(var(--accent-500));
   }
 
+  .btn-success {
+    @apply btn-base text-white shadow-sm;
+    background-color: rgb(var(--success-500));
+  }
+
+  .btn-success:hover {
+    background-color: rgb(var(--success-700));
+  }
+
+  .btn-success:focus-visible {
+    --tw-ring-color: rgb(var(--success-500));
+  }
+
   .btn-ghost {
     @apply btn-base bg-slate-100 text-slate-700 hover:bg-slate-200;
   }

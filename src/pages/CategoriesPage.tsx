@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useCategories } from '../hooks/useCategories';
 import { categoriesService } from '../services/categories.service';
 import { Header } from '../components/layout/Header';
-import { FaPlus, FaEdit, FaTrash, FaTags } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaTags, FaSearch } from 'react-icons/fa';
 import type { Category, CreateCategoryDto, UpdateCategoryDto } from '../types/category.types';
 
 export function CategoriesPage() {
   const [type, setType] = useState<'expense' | 'income' | undefined>(undefined);
+  const [search, setSearch] = useState('');
   const { categories, loading, error, refresh } = useCategories(type);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -43,6 +44,10 @@ export function CategoriesPage() {
   };
 
   const filteredCategories = type ? categories.filter((c) => c.type === type) : categories;
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleCategories = normalizedSearch
+    ? filteredCategories.filter((c) => c.name.toLowerCase().includes(normalizedSearch))
+    : filteredCategories;
   const expenseCategories = categories.filter((c) => c.type === 'expense');
   const incomeCategories = categories.filter((c) => c.type === 'income');
 
@@ -77,6 +82,17 @@ export function CategoriesPage() {
               label={`Ingresos (${incomeCategories.length})`}
             />
           </div>
+
+          <div className="mt-4 relative">
+            <FaSearch className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar categoria por nombre..."
+              className="field pl-9"
+            />
+          </div>
         </section>
 
         {loading && (
@@ -91,45 +107,69 @@ export function CategoriesPage() {
           </section>
         )}
 
-        {!loading && !error && filteredCategories.length === 0 && (
+        {!loading && !error && visibleCategories.length === 0 && (
           <section className="surface-card p-10 text-center">
             <div className="mx-auto h-14 w-14 rounded-2xl bg-primary-50 text-primary-700 inline-flex items-center justify-center mb-4">
               <FaTags className="h-6 w-6" />
             </div>
-            <p className="text-base font-semibold text-slate-900">No hay categorias registradas.</p>
-            <p className="text-sm text-slate-600 mt-1">Crea una categoria para empezar a clasificar transacciones.</p>
+            <p className="text-base font-semibold text-slate-900">No se encontraron categorias.</p>
+            <p className="text-sm text-slate-600 mt-1">Prueba otro filtro o texto de busqueda.</p>
           </section>
         )}
 
-        {!loading && !error && filteredCategories.length > 0 && (
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCategories.map((category) => (
-              <article key={category.id} className="surface-card p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">{category.name}</h3>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <span className={`status-chip ${category.type === 'expense' ? 'bg-expense-100 text-expense-700' : 'bg-secondary-100 text-secondary-700'}`}>
-                        {category.type === 'expense' ? 'Gasto' : 'Ingreso'}
-                      </span>
-                      {category.isDefault && <span className="status-chip bg-slate-100 text-slate-700">Por defecto</span>}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex gap-2">
-                  <button onClick={() => setEditingCategory(category)} className="btn-ghost flex-1">
-                    <FaEdit className="h-4 w-4" />
-                    Editar
-                  </button>
-                  {!category.isDefault && (
-                    <button onClick={() => setDeleteConfirm(category.id)} className="btn-danger px-3 min-h-11" aria-label={`Eliminar ${category.name}`}>
-                      <FaTrash className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </article>
-            ))}
+        {!loading && !error && visibleCategories.length > 0 && (
+          <section className="surface-card-elevated overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600">Nombre</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600">Tipo</th>
+                    <th className="px-4 py-3 text-left font-bold text-slate-600">Estado</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-600">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/80">
+                  {visibleCategories.map((category) => (
+                    <tr key={category.id} className="hover:bg-slate-50/90 transition-colors">
+                      <td className="px-4 py-3 text-slate-900 font-medium">{category.name}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`status-chip ${category.type === 'expense' ? 'bg-expense-100 text-expense-700' : 'bg-secondary-100 text-secondary-700'}`}
+                        >
+                          {category.type === 'expense' ? 'Gasto' : 'Ingreso'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {category.isDefault ? (
+                          <span className="status-chip bg-slate-100 text-slate-700">Por defecto</span>
+                        ) : (
+                          <span className="status-chip bg-primary-100 text-primary-700">Personalizada</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="inline-flex gap-2">
+                          <button onClick={() => setEditingCategory(category)} className="btn-ghost min-h-10 px-3">
+                            <FaEdit className="h-4 w-4" />
+                            Editar
+                          </button>
+                          {!category.isDefault && (
+                            <button
+                              onClick={() => setDeleteConfirm(category.id)}
+                              className="btn-danger min-h-10 px-3"
+                              aria-label={`Eliminar ${category.name}`}
+                            >
+                              <FaTrash className="h-4 w-4" />
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         )}
 

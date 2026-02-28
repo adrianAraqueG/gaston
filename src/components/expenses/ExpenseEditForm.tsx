@@ -116,7 +116,7 @@ export function ExpenseEditForm({ expense, onClose, onSave }: ExpenseEditFormPro
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-expense-600 rounded-md hover:bg-expense-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-expense-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-success flex-1 px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Guardando...' : 'Guardar'}
               </button>
@@ -134,4 +134,3 @@ export function ExpenseEditForm({ expense, onClose, onSave }: ExpenseEditFormPro
     </div>
   );
 }
-

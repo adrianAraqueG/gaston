@@ -15,6 +15,7 @@ export interface Transaction {
   description: string;
   category?: Category;
   pocket?: Pocket | null;
+  fixedExpenseId?: number;
   occurredAt: string;
   createdBy: number;
   accountId: number;

@@ -23,7 +23,7 @@ function getTransactionStyles(type: 'expense' | 'income') {
   }
   return {
     title: 'Editar Gasto',
-    buttonColor: 'bg-expense-600 hover:bg-expense-700 focus:ring-expense-500',
+    buttonColor: 'btn-success focus:ring-secondary-500',
     focusColor: 'focus:ring-expense-500 focus:border-expense-500',
   };
 }
@@ -201,4 +201,3 @@ export function TransactionEditForm({ transaction, onClose, onSave }: Transactio
     </div>
   );
 }
-
