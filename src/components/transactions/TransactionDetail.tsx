@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Transaction } from '../../types/transaction.types';
-import { transactionsService } from '../../services/transactions.service';
 import { formatCurrency, formatDateTime } from '../../utils/formatters';
 import { normalizeImageUrl } from '../../utils/image';
 import { TransactionDeleteConfirm } from './TransactionDeleteConfirm';
@@ -11,7 +10,7 @@ interface TransactionDetailProps {
   transaction: Transaction;
   onClose: () => void;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete: (id: number) => void | Promise<void>;
 }
 
 // Helper para obtener estilos según el tipo
@@ -40,8 +39,7 @@ export function TransactionDetail({ transaction, onClose, onEdit, onDelete }: Tr
 
   async function handleDelete() {
     try {
-      await transactionsService.delete(transaction.id);
-      onDelete();
+      await onDelete(transaction.id);
       onClose();
     } catch (error) {
       alert(`Error al eliminar ${transaction.type === 'income' ? 'el ingreso' : 'el gasto'}`);
@@ -151,4 +149,3 @@ export function TransactionDetail({ transaction, onClose, onEdit, onDelete }: Tr
     </>
   );
 }
-

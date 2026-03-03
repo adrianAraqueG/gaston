@@ -28,25 +28,24 @@ export function useTransactions() {
   async function deleteTransaction(id: number) {
     try {
       await transactionsService.delete(id);
-      setExpenses(expenses.filter(e => e.id !== id));
-      setIncomes(incomes.filter(i => i.id !== id));
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+      setIncomes((prev) => prev.filter((i) => i.id !== id));
     } catch (err: any) {
-      throw new Error(err.message || 'Error al eliminar transacción');
+      throw new Error(err.message || 'Error al eliminar transaccion');
     }
   }
 
   async function updateTransaction(id: number, data: UpdateTransactionDto) {
     try {
       const updated = await transactionsService.update(id, data);
-      // Actualizar en la lista correspondiente según el tipo
       if (updated.type === 'expense') {
-        setExpenses(expenses.map(e => e.id === id ? updated as Expense : e));
+        setExpenses((prev) => prev.map((e) => (e.id === id ? (updated as Expense) : e)));
       } else {
-        setIncomes(incomes.map(i => i.id === id ? updated as Income : i));
+        setIncomes((prev) => prev.map((i) => (i.id === id ? (updated as Income) : i)));
       }
       return updated;
     } catch (err: any) {
-      throw new Error(err.message || 'Error al actualizar transacción');
+      throw new Error(err.message || 'Error al actualizar transaccion');
     }
   }
 
@@ -64,4 +63,3 @@ export function useTransactions() {
     updateTransaction,
   };
 }
-

@@ -149,18 +149,22 @@ export function CategoriesPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="inline-flex gap-2">
-                          <button onClick={() => setEditingCategory(category)} className="btn-ghost min-h-10 px-3">
+                          <button
+                            onClick={() => setEditingCategory(category)}
+                            className="btn-ghost min-h-10 px-3"
+                            aria-label={`Editar ${category.name}`}
+                            title="Editar"
+                          >
                             <FaEdit className="h-4 w-4" />
-                            Editar
                           </button>
                           {!category.isDefault && (
                             <button
                               onClick={() => setDeleteConfirm(category.id)}
                               className="btn-danger min-h-10 px-3"
                               aria-label={`Eliminar ${category.name}`}
+                              title="Eliminar"
                             >
                               <FaTrash className="h-4 w-4" />
-                              Eliminar
                             </button>
                           )}
                         </div>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Transaction, UpdateTransactionDto } from '../../types/transaction.types';
-import { transactionsService } from '../../services/transactions.service';
 import { validateAmount } from '../../utils/validators';
 import { isIncome } from '../../types/transaction.types';
 import { useCategories } from '../../hooks/useCategories';
@@ -9,7 +8,7 @@ import { usePockets } from '../../hooks/usePockets';
 interface TransactionEditFormProps {
   transaction: Transaction;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (data: UpdateTransactionDto) => void | Promise<void>;
 }
 
 // Helper para obtener estilos según el tipo
@@ -64,8 +63,7 @@ export function TransactionEditForm({ transaction, onClose, onSave }: Transactio
     };
 
     try {
-      await transactionsService.update(transaction.id, updateData);
-      onSave();
+      await onSave(updateData);
       onClose();
     } catch (err: any) {
       setError(err.message || `Error al actualizar ${transaction.type === 'income' ? 'ingreso' : 'gasto'}`);

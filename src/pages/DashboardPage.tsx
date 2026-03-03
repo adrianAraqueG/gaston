@@ -10,7 +10,7 @@ import { TransactionEditForm } from '../components/transactions/TransactionEditF
 import { Header } from '../components/layout/Header';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { transactionsService } from '../services/transactions.service';
-import type { Transaction } from '../types/transaction.types';
+import type { Transaction, UpdateTransactionDto } from '../types/transaction.types';
 import type {
   CreateFixedExpenseDto,
   FixedExpense,
@@ -23,9 +23,12 @@ import {
   FaArrowTrendDown,
   FaArrowTrendUp,
   FaChartLine,
+  FaEye,
   FaFileExcel,
+  FaPen,
   FaPlus,
   FaTable,
+  FaTrash,
 } from 'react-icons/fa6';
 
 const monthOptions = [
@@ -65,7 +68,7 @@ function getLocalDateTimeInputValue(date = new Date()): string {
 }
 
 export function DashboardPage() {
-  const { expenses, incomes, loading, error, refresh } = useTransactions();
+  const { expenses, incomes, loading, error, refresh, deleteTransaction, updateTransaction } = useTransactions();
   const {
     fixedExpenses,
     loading: fixedExpensesLoading,
@@ -88,6 +91,7 @@ export function DashboardPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
 
   const [showFixedExpenseCreate, setShowFixedExpenseCreate] = useState(false);
   const [editingFixedExpense, setEditingFixedExpense] = useState<FixedExpense | null>(null);
@@ -139,6 +143,7 @@ export function DashboardPage() {
 
   const totalIncomes = filteredIncomes.reduce((sum, tx) => sum + tx.amount, 0);
   const totalExpenses = filteredExpenses.reduce((sum, tx) => sum + tx.amount, 0);
+  const fixedExpensesDefaultTotal = fixedExpenses.reduce((sum, fixedExpense) => sum + fixedExpense.defaultAmount, 0);
   const balance = totalIncomes - totalExpenses;
 
   const totalFlow = totalIncomes + totalExpenses;
@@ -223,6 +228,37 @@ export function DashboardPage() {
     }
   };
 
+  const handleDeleteTransaction = async () => {
+    if (!deletingTransaction) {
+      return;
+    }
+
+    try {
+      await deleteTransaction(deletingTransaction.id);
+      if (selectedTransaction?.id === deletingTransaction.id) {
+        setSelectedTransaction(null);
+      }
+      if (editingTransaction?.id === deletingTransaction.id) {
+        setEditingTransaction(null);
+      }
+      setDeletingTransaction(null);
+    } catch (err) {
+      alert(getApiErrorMessage(err, 'Error al eliminar transaccion'));
+    }
+  };
+
+  const handleUpdateTransaction = async (data: UpdateTransactionDto) => {
+    if (!editingTransaction) {
+      return;
+    }
+
+    await updateTransaction(editingTransaction.id, data);
+    if (selectedTransaction?.id === editingTransaction.id) {
+      setSelectedTransaction(null);
+    }
+    setEditingTransaction(null);
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -301,6 +337,9 @@ export function DashboardPage() {
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">Gastos fijos</h2>
               <p className="text-sm text-slate-600 mt-1">
                 Registra y paga gastos recurrentes con un click.
+              </p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-2">
+                {fixedExpenses.length} registros | Total mensual estimado: {formatCurrency(fixedExpensesDefaultTotal)}
               </p>
             </div>
             <button
@@ -385,14 +424,18 @@ export function DashboardPage() {
                               setEditingFixedExpense(fixedExpense);
                             }}
                             className="btn-ghost min-h-10 px-3"
+                            aria-label={`Editar ${fixedExpense.name}`}
+                            title="Editar"
                           >
-                            Editar
+                            <FaPen className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setDeletingFixedExpense(fixedExpense)}
                             className="btn-danger min-h-10 px-3"
+                            aria-label={`Eliminar ${fixedExpense.name}`}
+                            title="Eliminar"
                           >
-                            Eliminar
+                            <FaTrash className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -566,14 +609,26 @@ export function DashboardPage() {
                               <button
                                 onClick={() => setSelectedTransaction(tx)}
                                 className="btn-ghost min-h-10 px-3"
+                                aria-label={`Ver ${tx.description}`}
+                                title="Ver"
                               >
-                                Ver
+                                <FaEye className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => setEditingTransaction(tx)}
                                 className={tx.type === 'income' ? 'btn-accent min-h-10 px-3' : 'btn-danger min-h-10 px-3'}
+                                aria-label={`Editar ${tx.description}`}
+                                title="Editar"
                               >
-                                Editar
+                                <FaPen className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => setDeletingTransaction(tx)}
+                                className="btn-danger min-h-10 px-3"
+                                aria-label={`Eliminar ${tx.description}`}
+                                title="Eliminar"
+                              >
+                                <FaTrash className="h-4 w-4" />
                               </button>
                             </div>
                           </td>
@@ -597,7 +652,7 @@ export function DashboardPage() {
               setEditingTransaction(selectedTransaction);
               setSelectedTransaction(null);
             }}
-            onDelete={refresh}
+            onDelete={deleteTransaction}
           />
         )}
 
@@ -605,10 +660,7 @@ export function DashboardPage() {
           <TransactionEditForm
             transaction={editingTransaction}
             onClose={() => setEditingTransaction(null)}
-            onSave={() => {
-              refresh();
-              setEditingTransaction(null);
-            }}
+            onSave={handleUpdateTransaction}
           />
         )}
 
@@ -646,6 +698,15 @@ export function DashboardPage() {
             message={`Se desactivara "${deletingFixedExpense.name}". Podras recrearlo despues con el mismo nombre.`}
             onCancel={() => setDeletingFixedExpense(null)}
             onConfirm={handleDeleteFixedExpense}
+          />
+        )}
+
+        {deletingTransaction && (
+          <DeleteConfirmModal
+            title="Eliminar transaccion"
+            message={`Se eliminara "${deletingTransaction.description}" de forma permanente.`}
+            onCancel={() => setDeletingTransaction(null)}
+            onConfirm={handleDeleteTransaction}
           />
         )}
       </main>
